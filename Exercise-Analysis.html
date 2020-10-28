@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jim Condon" />
+
+<meta name="date" content="2020-10-14" />
+
+<title>Exercise Analysis</title>
+
+<script src="Exercise-Analysis_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="Exercise-Analysis_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="Exercise-Analysis_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="Exercise-Analysis_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="Exercise-Analysis_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="Exercise-Analysis_files/navigation-1.1/tabsets.js"></script>
+<link href="Exercise-Analysis_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="Exercise-Analysis_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Exercise Analysis</h1>
+<h4 class="author">Jim Condon</h4>
+<h4 class="date">October 14, 2020</h4>
+
+</div>
+
+
+<div id="executive-summary" class="section level2">
+<h2>Executive Summary</h2>
+<p>In this assignment we take gyrometric data from a number of accelerometers and use that to predict which class or manner of exercise the participants did. After analysis, building our model and validating it, the best choice for our model is the Random Forest model.</p>
+</div>
+<div id="loading-the-data" class="section level2">
+<h2>Loading the data</h2>
+<p>First we load libraries we need.</p>
+<pre class="r"><code>library(&quot;ggplot2&quot;)
+library(&quot;caret&quot;)</code></pre>
+<pre><code>## Warning: package &#39;caret&#39; was built under R version 3.6.2</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre class="r"><code>library(&quot;dplyr&quot;)</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 3.6.2</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(&quot;rpart&quot;)
+library(&quot;rattle&quot;)</code></pre>
+<pre><code>## Warning: package &#39;rattle&#39; was built under R version 3.6.3</code></pre>
+<pre><code>## Rattle: A free graphical interface for data science with R.
+## Version 5.3.0 Copyright (c) 2006-2018 Togaware Pty Ltd.
+## Type &#39;rattle()&#39; to shake, rattle, and roll your data.</code></pre>
+<pre class="r"><code>library(&quot;randomForest&quot;)</code></pre>
+<pre><code>## Warning: package &#39;randomForest&#39; was built under R version 3.6.3</code></pre>
+<pre><code>## randomForest 4.6-14</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre><code>## 
+## Attaching package: &#39;randomForest&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:rattle&#39;:
+## 
+##     importance</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     margin</code></pre>
+<p>Then we load the datasets.</p>
+<pre class="r"><code>training_data &lt;- read.csv(&quot;pml-training.csv&quot;)
+testing_data &lt;- read.csv(&quot;pml-testing.csv&quot;)</code></pre>
+<p>There are columns with a lot of NAs, let’s remove any that have over 95% NAs</p>
+<pre class="r"><code>nas &lt;- sapply(training_data, function(x) mean(is.na(x))) &gt; 0.95
+training_data &lt;- training_data[,nas == FALSE]</code></pre>
+<p>Let’s split our training data into a training set and cross validation set</p>
+<pre class="r"><code>intrain &lt;- createDataPartition(training_data$classe, p = 0.70, list = FALSE)
+training_final &lt;- training_data[intrain,]
+validation &lt;- training_data[-intrain,]</code></pre>
+</div>
+<div id="data-analysis" class="section level2">
+<h2>Data Analysis</h2>
+<p>Our first step is to examine the training dataset and remove any variables that have near zero variance.</p>
+<pre class="r"><code>VarAnalysis &lt;- nearZeroVar(training_final, saveMetrics=TRUE)
+Vars_to_remove &lt;- subset(VarAnalysis, nzv == TRUE)
+nrow(Vars_to_remove)</code></pre>
+<pre><code>## [1] 34</code></pre>
+<p>This allows us to remove 34 variables from our list. We now subset our training dataset removing the near zero variance variables.</p>
+<pre class="r"><code>Vars_to_keep&lt;- subset(VarAnalysis, nzv == FALSE)
+Vars_to_keep$variable &lt;- row.names(Vars_to_keep)
+predictors &lt;- training_final[Vars_to_keep$variable]</code></pre>
+<p>Other variables we can easily remove that are not relevant are: X, user_name, any timestamps, num_window. We can also remove any of the variables that are aggregations of the detailed data. Any variables with max, min, amplitude, total, avg, stddev, var (variance)</p>
+<pre class="r"><code>predictors2 &lt;- predictors[7:59]</code></pre>
+<p>Next we see if any of our variables have a high correlation with each other and remove them.</p>
+<pre class="r"><code>cor_set &lt;- predictors2[,-53]
+cor &lt;- cor(cor_set)
+cor_vars &lt;- findCorrelation(cor, cutoff = 0.6)
+final_predictors &lt;- predictors2[,-cor_vars]</code></pre>
+<p>Now that we have our final set of predictors, we can build our models. We choose one Decision Tree and one Random Forest Algorithm</p>
+<pre class="r"><code>set.seed(12345)
+DT_fit &lt;- rpart(classe ~ ., method = &quot;class&quot;, data = final_predictors)
+RF_control &lt;- trainControl(method=&quot;cv&quot;, number=3, verboseIter=FALSE)
+RF_fit &lt;- train(classe ~ ., method = &quot;rf&quot;, data = final_predictors, trControl = RF_control)</code></pre>
+<p>Next we predict on our validation set and then test the accuracy.</p>
+</div>
+<div id="model-evaluation" class="section level2">
+<h2>Model Evaluation</h2>
+<pre class="r"><code>DT_model &lt;- predict(DT_fit, newdata = validation, type = &quot;class&quot;)
+CMDT &lt;- confusionMatrix(factor(DT_model), validation$classe)
+CMDT</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1330  270  215  136   69
+##          B   60  507   57  111  115
+##          C   84  167  631   77  161
+##          D  162  189   76  615  141
+##          E   38    6   47   25  596
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.6251          
+##                  95% CI : (0.6126, 0.6375)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.5231          
+##                                           
+##  Mcnemar&#39;s Test P-Value : &lt; 2.2e-16       
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.7945  0.44513   0.6150   0.6380   0.5508
+## Specificity            0.8361  0.92773   0.8994   0.8846   0.9758
+## Pos Pred Value         0.6584  0.59647   0.5634   0.5199   0.8371
+## Neg Pred Value         0.9110  0.87448   0.9171   0.9258   0.9061
+## Prevalence             0.2845  0.19354   0.1743   0.1638   0.1839
+## Detection Rate         0.2260  0.08615   0.1072   0.1045   0.1013
+## Detection Prevalence   0.3432  0.14444   0.1903   0.2010   0.1210
+## Balanced Accuracy      0.8153  0.68643   0.7572   0.7613   0.7633</code></pre>
+<pre class="r"><code>RF_model &lt;- predict(RF_fit, newdata = validation)
+CMRF &lt;- confusionMatrix(factor(RF_model), validation$classe)
+CMRF</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1666   23    1    0    1
+##          B    1 1109   11    0    0
+##          C    4    7 1004   42    0
+##          D    1    0    8  921    1
+##          E    2    0    2    1 1080
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9822          
+##                  95% CI : (0.9784, 0.9854)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9774          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9952   0.9737   0.9786   0.9554   0.9982
+## Specificity            0.9941   0.9975   0.9891   0.9980   0.9990
+## Pos Pred Value         0.9852   0.9893   0.9499   0.9893   0.9954
+## Neg Pred Value         0.9981   0.9937   0.9954   0.9913   0.9996
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2831   0.1884   0.1706   0.1565   0.1835
+## Detection Prevalence   0.2873   0.1905   0.1796   0.1582   0.1844
+## Balanced Accuracy      0.9946   0.9856   0.9838   0.9767   0.9986</code></pre>
+<p>Decision Tree Accuracy - 62.51% Random Forest Accuracy - 98.64%</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>As the random forest accuracy is much higher, that is the model we choose to use for the test data.</p>
+<pre class="r"><code>RF_test_model &lt;- predict(RF_fit, newdata = testing_data)</code></pre>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

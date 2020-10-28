@@ -1,0 +1,119 @@
+---
+title: "Exercise Analysis"
+author: "Jim Condon"
+date: "October 14, 2020"
+output:
+  html_document: 
+    self_contained: no
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary
+
+In this assignment we take gyrometric data from a number of accelerometers and use that to predict which class or manner of exercise the participants did.  After analysis, building our model and validating it, the best choice for our model is the Random Forest model.
+
+## Loading the data
+
+First we load libraries we need.
+
+```{r libraries}
+library("ggplot2")
+library("caret")
+library("dplyr")
+library("rpart")
+library("rattle")
+library("randomForest")
+```
+
+Then we load the datasets.
+
+```{r load data}
+training_data <- read.csv("pml-training.csv")
+testing_data <- read.csv("pml-testing.csv")
+```
+
+There are columns with a lot of NAs, let's remove any that have over 95% NAs
+```{r remove NAs}
+nas <- sapply(training_data, function(x) mean(is.na(x))) > 0.95
+training_data <- training_data[,nas == FALSE]
+```
+
+Let's split our training data into a training set and cross validation set
+```{r split data sets}
+intrain <- createDataPartition(training_data$classe, p = 0.70, list = FALSE)
+training_final <- training_data[intrain,]
+validation <- training_data[-intrain,]
+```
+
+
+## Data Analysis
+
+Our first step is to examine the training dataset and remove any variables that have near zero variance.
+
+```{r near zero variance}
+VarAnalysis <- nearZeroVar(training_final, saveMetrics=TRUE)
+Vars_to_remove <- subset(VarAnalysis, nzv == TRUE)
+nrow(Vars_to_remove)
+```
+
+This allows us to remove 34 variables from our list.  We now subset our training dataset removing the near zero variance variables.
+
+```{r remove nzv}
+Vars_to_keep<- subset(VarAnalysis, nzv == FALSE)
+Vars_to_keep$variable <- row.names(Vars_to_keep)
+predictors <- training_final[Vars_to_keep$variable]
+```
+
+Other variables we can easily remove that are not relevant are: X, user_name, any timestamps, num_window.
+We can also remove any of the variables that are aggregations of the detailed data.  Any variables with max, min, amplitude, total, avg, stddev, var (variance)
+
+```{r remove other vars}
+predictors2 <- predictors[7:59]
+```
+
+Next we see if any of our variables have a high correlation with each other and remove them.
+
+```{r correlations}
+cor_set <- predictors2[,-53]
+cor <- cor(cor_set)
+cor_vars <- findCorrelation(cor, cutoff = 0.6)
+final_predictors <- predictors2[,-cor_vars]
+```
+
+Now that we have our final set of predictors, we can build our models.  We choose one Decision Tree and one Random Forest Algorithm
+
+```{r training}
+set.seed(12345)
+DT_fit <- rpart(classe ~ ., method = "class", data = final_predictors)
+RF_control <- trainControl(method="cv", number=3, verboseIter=FALSE)
+RF_fit <- train(classe ~ ., method = "rf", data = final_predictors, trControl = RF_control)
+```
+
+Next we predict on our validation set and then test the accuracy.
+
+## Model Evaluation
+```{r validation}
+DT_model <- predict(DT_fit, newdata = validation, type = "class")
+CMDT <- confusionMatrix(factor(DT_model), validation$classe)
+CMDT
+RF_model <- predict(RF_fit, newdata = validation)
+CMRF <- confusionMatrix(factor(RF_model), validation$classe)
+CMRF
+```
+
+Decision Tree Accuracy - 62.51%
+Random Forest Accuracy - 98.64%
+
+## Conclusion
+
+As the random forest accuracy is much higher, that is the model we choose to use for the test data.
+
+```{r test data}
+RF_test_model <- predict(RF_fit, newdata = testing_data)
+```
+
+
